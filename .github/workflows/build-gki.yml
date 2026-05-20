@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: true  # 拉取子模块，确保 kernel 目录完整
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -27,14 +29,16 @@ jobs:
       - name: 安装依赖
         run: |
           sudo apt update
-          sudo apt install -y wget
+          sudo apt install -y wget python3-pip
           pip install pyyaml
 
       - name: 下载 boot.img
         run: wget -O original_boot.img "https://files.catbox.moe/tynfs3.img"
 
       - name: 给 boot.img 打 KernelSU 补丁
-        run: python3 ksu.py patch --boot original_boot.img --output ksu_${{ inputs.device }}.img
+        run: |
+          cd kernel
+          python3 patch_boot.py --boot ../original_boot.img --output ../ksu_${{ inputs.device }}.img
 
       - name: 上传打好补丁的镜像
         uses: actions/upload-artifact@v4
