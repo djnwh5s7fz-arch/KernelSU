@@ -42,8 +42,9 @@ jobs:
 
       - name: 构建 ksud 并打补丁
         run: |
+          cd userspace/ksud
           make
-          ./build/bin/ksud patch bootimg original_boot.img -o ksu_${{ inputs.device }}.img
+          ./build/bin/ksud patch bootimg ../../original_boot.img -o ../../ksu_${{ inputs.device }}.img
 
       - name: 上传打好补丁的镜像
         uses: actions/upload-artifact@v4
