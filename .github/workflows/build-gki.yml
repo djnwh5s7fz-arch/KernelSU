@@ -34,7 +34,7 @@ jobs:
         run: wget -O original_boot.img "https://files.catbox.moe/tynfs3.img"
 
       - name: 给 boot.img 打 KernelSU 补丁
-        run: python3 ksu.py patch --boot original_boot.img --output ksu_${{ inputs.device }}.img
+        run: python3 python/ksu.py patch --boot original_boot.img --output ksu_${{ inputs.device }}.img
 
       - name: 上传打好补丁的镜像
         uses: actions/upload-artifact@v4
