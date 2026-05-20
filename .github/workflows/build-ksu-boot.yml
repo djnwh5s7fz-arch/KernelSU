@@ -1,53 +1,40 @@
-name: Build KernelSU Patched Boot Image
-
+name: Patch Boot with KernelSU
 on:
   workflow_dispatch:
     inputs:
       device:
-        description: '设备代号'
         required: true
-        default: 'myphone'
-      boot_img_url:
-        description: 'boot.img 直链'
-        required: true
-        default: 'https://files.catbox.moe/tynfs3.img'
+        default: "myphone"
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout KernelSU
         uses: actions/checkout@v4
         with:
-          submodules: true
+          repository: tiann/KernelSU
+          ref: main
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: "1.23"
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      - name: Download boot.img
+        run: wget -O boot.img "https://files.catbox.moe/tynfs3.img"
 
-      - name: 安装依赖
+      - name: Build ksud
         run: |
-          sudo apt update
-          sudo apt install -y wget build-essential
-          pip install pyyaml
+          cd userspace
+          go build -o ksud ./cmd/ksud
+          mv ksud ..
 
-      - name: 下载 boot.img
-        run: wget -O original_boot.img ${{ inputs.boot_img_url }}
+      - name: Patch boot.img
+        run: ./ksud patch bootimg boot.img -o ksu_${{ inputs.device }}.img
 
-      - name: 构建 ksud 并打补丁
-        run: |
-          cd userspace/ksud
-          make
-          ./build/bin/ksud patch bootimg ../../original_boot.img -o ../../ksu_${{ inputs.device }}.img
-
-      - name: 上传打好补丁的镜像
+      - name: Upload result
         uses: actions/upload-artifact@v4
         with:
-          name: ksu_${{ inputs.device }}_boot
-          path: ksu_${{ inputs.device }}.img
+          name: ksu_patched_boot
+          path: ksu_*.img
