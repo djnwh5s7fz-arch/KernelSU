@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       device:
-        description: 'Device codename'
+        description: '设备代号'
         required: true
         default: 'myphone'
       boot_img_url:
-        description: 'Direct download URL of boot.img'
+        description: 'boot.img 直链'
         required: true
         default: 'https://files.catbox.moe/tynfs3.img'
 
@@ -16,11 +16,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout KernelSU official repo
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          repository: tiann/KernelSU
-          ref: main
           submodules: true
 
       - name: Setup Go
@@ -33,21 +31,21 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: 安装依赖
         run: |
           sudo apt update
           sudo apt install -y wget build-essential
           pip install pyyaml
 
-      - name: Download boot.img
+      - name: 下载 boot.img
         run: wget -O original_boot.img ${{ inputs.boot_img_url }}
 
-      - name: Build ksud and patch boot.img
+      - name: 构建 ksud 并打补丁
         run: |
           make
           ./build/bin/ksud patch bootimg original_boot.img -o ksu_${{ inputs.device }}.img
 
-      - name: Upload patched boot.img
+      - name: 上传打好补丁的镜像
         uses: actions/upload-artifact@v4
         with:
           name: ksu_${{ inputs.device }}_boot
