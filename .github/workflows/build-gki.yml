@@ -1,0 +1,46 @@
+name: Build KernelSU for GKI
+
+on:
+  workflow_dispatch:
+    inputs:
+      device:
+        description: 'Device codename'
+        required: true
+        default: 'xaga'
+      boot_img_url:
+        description: 'Direct download URL of GKI boot.img'
+        required: true
+      arch:
+        description: 'Architecture (arm64/arm/x86_64)'
+        required: true
+        default: 'arm64'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y wget python3-pip
+          pip install pyyaml
+
+      - name: Download boot.img
+        run: wget -O original_boot.img ${{ inputs.boot_img_url }}
+
+      - name: Patch boot.img with KernelSU
+        run: python3 ksu.py patch --boot original_boot.img --output ksu_${{ inputs.device }}_boot.img
+
+      - name: Upload patched boot.img
+        uses: actions/upload-artifact@v4
+        with:
+          name: ksu_${{ inputs.device }}_boot.img
+          path: ksu_${{ inputs.device }}_boot.img
