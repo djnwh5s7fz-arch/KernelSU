@@ -6,10 +6,7 @@ on:
       device:
         description: '设备代号'
         required: true
-        default: 'phone'
-      limewire_url:
-        description: 'LimeWire 预览链接'
-        required: true
+        default: 'myphone'
       arch:
         description: '架构'
         required: true
@@ -30,13 +27,11 @@ jobs:
       - name: 安装依赖
         run: |
           sudo apt update
-          sudo apt install -y wget curl jq
+          sudo apt install -y wget
           pip install pyyaml
 
-      - name: 从 LimeWire 自动解析并下载 boot.img
-        run: |
-          curl -s "${{ inputs.limewire_url }}" | grep -oE 'https://[^"]+\.(img|IMG)' > url.txt
-          wget -i url.txt -O original_boot.img
+      - name: 下载 boot.img
+        run: wget -O original_boot.img "https://files.catbox.moe/tynfs3.img"
 
       - name: 给 boot.img 打 KernelSU 补丁
         run: python3 ksu.py patch --boot original_boot.img --output ksu_${{ inputs.device }}.img
